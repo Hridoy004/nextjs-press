@@ -1,8 +1,5 @@
 "use client";
 
-import { LayoutDashboard, LogOut, Menu, Settings, User, X } from "lucide-react";
-import { useState } from "react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { logout } from "@/service/logout";
+import { LayoutDashboard, LogOut, Menu, Settings, User, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const navItems = [
   { label: "Home", href: "#" },
@@ -29,19 +32,57 @@ const userMenuItems = [
   { label: "Settings", href: "#settings", icon: Settings },
 ];
 
-export function Navbar() {
+type IUser = {
+  success: boolean;
+  message: string;
+  data: {
+    profile: {
+      id: string;
+      name: string;
+      email: string;
+      activeStatus: string;
+      role: string;
+      createdAt: string;
+      updatedAt: string;
+
+      profile: {
+        id: string;
+        profilePhoto: string;
+        bio: string | null;
+        userId: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+    };
+  };
+};
+
+type NavbarProps = {
+  user: IUser;
+};
+
+export function Navbar({ user }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+
+  const handleUserMenuAction = async (action: string) => {
+    if (action === "logout") {
+      await logout();
+      toast.success("User Logged Out Successfully!");
+      router.push("/login");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2 font-semibold">
+        <Link href="/" className="flex items-center gap-2 font-semibold">
           <span className="grid size-8 place-items-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
             V
           </span>
           <span className="text-lg tracking-tight">Vertex</span>
-        </a>
+        </Link>
 
         {/* Desktop nav links */}
         <ul className="hidden items-center gap-1 md:flex">
@@ -58,62 +99,75 @@ export function Navbar() {
         </ul>
 
         {/* Right side: user dropdown + mobile toggle */}
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label="User menu"
-              className="rounded-full cursor-pointer outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <Avatar className="size-9">
-                <AvatarImage src="/diverse-avatars.png" alt="User avatar" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">Jane Doe</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    jane@example.com
-                  </span>
-                </DropdownMenuLabel>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                {userMenuItems.map((item) => (
-                  <DropdownMenuItem
-                    key={item.label}
-                    // render={<a href={item.href} />}
-                    className="cursor-pointer"
-                  >
-                    <item.icon className="mr-2 size-4" />
-                    {item.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                <LogOut className="mr-2 size-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {user.success ? (
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label="User menu"
+                className="rounded-full cursor-pointer outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <Avatar className="size-9">
+                  <AvatarImage src="/diverse-avatars.png" alt="User avatar" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium">
+                      {user.data?.profile.name}
+                    </span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {user.data?.profile.email}
+                    </span>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  {userMenuItems.map((item) => (
+                    <DropdownMenuItem
+                      key={item.label}
+                      // render={<a href={item.href} />}
+                      className="cursor-pointer"
+                    >
+                      <item.icon className="mr-2 size-4" />
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                  onClick={async () => {
+                    await handleUserMenuAction("logout");
+                  }}
+                >
+                  <LogOut className="mr-2 size-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen((open) => !open)}
-            aria-label="Toggle menu"
-            aria-expanded={mobileOpen}
-          >
-            {mobileOpen ? (
-              <X className="size-5" />
-            ) : (
-              <Menu className="size-5" />
-            )}
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileOpen((open) => !open)}
+              aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+            >
+              {mobileOpen ? (
+                <X className="size-5" />
+              ) : (
+                <Menu className="size-5" />
+              )}
+            </Button>
+          </div>
+        ) : (
+          <Link href={"/login"}>
+            <Button className="cursor-pointer">Login</Button>
+          </Link>
+        )}
       </nav>
 
       {/* Mobile nav links */}

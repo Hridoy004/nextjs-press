@@ -1,5 +1,6 @@
 "use server";
 
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -53,7 +54,17 @@ export const loginAction = async (
       sameSite: "lax",
     });
 
-    redirect("/dashboard", "replace");
+    const decodedToken = jwt.decode(result.data.accessToken) as JwtPayload;
+
+    if (decodedToken.role === "USER") {
+      redirect("/dashboard");
+    } else if (decodedToken.role === "ADMIN") {
+      redirect("/admin-dashboard");
+    } else if (decodedToken.role === "AUTHOR") {
+      redirect("/author-dashboard");
+    }
+
+    // redirect("/dashboard", "replace");
   }
 
   return result;

@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 export const getMe = async () => {
   const cookieStore = await cookies();
 
-  const accessToken = cookieStore.get("accessToken")?.value;
+  const accessToken = cookieStore.get("accessToken")?.value || null;
 
   console.log(accessToken);
 
@@ -25,6 +25,12 @@ export const getMe = async () => {
       // Authorization: `Bearer ${accessToken}`,
 
       Cookie: `accessToken=${accessToken}`,
+    },
+
+    cache: "force-cache",
+    next: {
+      revalidate: 60 * 60 * 24,
+      tags: ["my-profile"],
     },
   });
 

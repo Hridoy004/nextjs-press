@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/shared/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Inter } from "next/font/google";
@@ -6,7 +5,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -17,7 +16,6 @@ export default function RootLayout({
       className={cn("h-full", "antialiased", "font-sans", inter.variable)}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
         <Toaster position="top-right" richColors />
         {children}
       </body>
