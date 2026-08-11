@@ -7,8 +7,6 @@ export const getMe = async () => {
 
   const accessToken = cookieStore.get("accessToken")?.value || null;
 
-  console.log(accessToken);
-
   if (!accessToken) {
     // throw new Error("User Not Logged In!");
 
@@ -35,8 +33,6 @@ export const getMe = async () => {
   });
 
   const result = res.json();
-
-  console.log(result);
 
   return result;
 };

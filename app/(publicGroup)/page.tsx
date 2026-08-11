@@ -6,8 +6,6 @@ export default async function HomePage() {
 
   const user = await getMe();
 
-  console.log(user);
-
   return (
     <div>
       <Button size={"xs"} variant={"destructive"}>
