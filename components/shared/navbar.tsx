@@ -19,17 +19,18 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const navItems = [
-  { label: "Home", href: "#" },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Services", href: "/services" },
+  { label: "Contact", href: "/contact" },
+  { label: "News", href: "/news" },
+  { label: "Premium", href: "/premium" },
 ];
 
 const userMenuItems = [
-  { label: "Profile", href: "#profile", icon: User },
-  { label: "Dashboard", href: "#dashboard", icon: LayoutDashboard },
-  { label: "Settings", href: "#settings", icon: Settings },
+  { label: "Profile", href: "/profile", icon: User },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 type IUser = {
