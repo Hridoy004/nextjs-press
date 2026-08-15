@@ -15,6 +15,7 @@ type LoginState = {
 };
 
 export const loginAction = async (
+  redirectTo: string,
   prevState: LoginState,
   formData: FormData,
 ) => {
@@ -44,7 +45,6 @@ export const loginAction = async (
       maxAge: 60 * 60 * 24,
       sameSite: "lax",
     });
-
     cookieStore.set("refreshToken", result.data.refreshToken, {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
@@ -53,6 +53,15 @@ export const loginAction = async (
 
     const decodedToken = jwt.decode(result.data.accessToken) as JwtPayload;
 
+    if (
+      redirectTo &&
+      typeof redirectTo === "string" &&
+      redirectTo.startsWith("/") &&
+      !redirectTo.startsWith("//")
+    ) {
+      redirect(redirectTo);
+    }
+
     if (decodedToken.role === "USER") {
       redirect("/dashboard");
     } else if (decodedToken.role === "ADMIN") {
@@ -60,8 +69,6 @@ export const loginAction = async (
     } else if (decodedToken.role === "AUTHOR") {
       redirect("/author-dashboard");
     }
-
-    // redirect("/dashboard", "replace");
   }
 
   return result;

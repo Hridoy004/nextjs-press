@@ -12,22 +12,22 @@ export const getMe = async () => {
 
     return {
       success: false,
-      message: "User Not Logged In!",
+      message: "User not logged in!",
     };
   }
 
   const res = await fetch(`${process.env.BACKEND_API_URL}/api/users/me`, {
     headers: {
-      // Authorization: accessToken as unknown as string,
-      // Authorization: `${accessToken}`,
-      // Authorization: `Bearer ${accessToken}`,
+      // Authorization : accessToken as unknown as string,
+      // Authorization : `${accessToken}`,
+      // Authorization : `Bearer ${accessToken}`
 
       Cookie: `accessToken=${accessToken}`,
     },
 
     cache: "force-cache",
     next: {
-      revalidate: 60 * 60 * 24,
+      revalidate: 60 * 60 * 24, // 1day
       tags: ["my-profile"],
     },
   });

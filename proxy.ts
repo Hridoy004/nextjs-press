@@ -6,15 +6,15 @@ import { getNewAccessToken } from "./service/refreshToken";
 import { jwtUtils } from "./utils/jwt";
 
 const AUTH_ROUTES = ["/login", "/register"];
-// const PUBLIC_ROUTES = ["/", "news", "/login", "/register"];
-const PUBLIC_ROUTES = ["/", "news"];
+// const PUBLIC_ROUTES = ["/", "/news", "/login", "/register"]
+const PUBLIC_ROUTES = ["/", "/news"];
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const cookieStore = await cookies();
-  //   const accessToken = request.cookies.get("accessToken");
+  // const accessToken = cookieStore.get("accessToken")?.value;
 
   let accessToken = request.cookies.get("accessToken")?.value;
   const refreshToken = request.cookies.get("refreshToken")?.value;
@@ -31,10 +31,8 @@ export async function proxy(request: NextRequest) {
     : null;
 
   if (!decodedAccessToken?.success && decodedRefreshToken?.success) {
-    // access token has expired but fresh token is valid, get new access token from backend
-
+    //access token has expired but refresh token is valid, get new access token from backend
     const result = await getNewAccessToken();
-    console.log(result);
 
     if (result.success) {
       const newAccessToken = result.data.accessToken;
@@ -56,15 +54,16 @@ export async function proxy(request: NextRequest) {
   let userRole = null;
 
   if (!decodedAccessToken?.success) {
-    // token has expired or is invalid, clear the cookies
+    //token has expired or is invalid, clear the cookies
     cookieStore.delete("accessToken");
-    // return NextResponse.redirect(new URL("/login", request.url));
+    // return NextResponse.redirect(new URL('/login', request.url));
   }
 
   if (decodedAccessToken?.success && decodedAccessToken.data) {
     userRole = (decodedAccessToken.data as JwtPayload).role;
   }
 
+  //user is logged in and trying to access login or register page, redirect to dashboard or root home page
   if (accessToken && AUTH_ROUTES.includes(pathname)) {
     if (userRole === "USER") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -85,12 +84,16 @@ export async function proxy(request: NextRequest) {
     (route) => pathname === route || pathname.startsWith(route + "/"),
   );
 
-  // Authentication pages protection
+  // Authenticated Pages Protection : Authorization is not handled yet
   if (!accessToken && !isPublicRoute && !isAuthRoute) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+
+    loginUrl.searchParams.set("redirectTo", pathname);
+
+    return NextResponse.redirect(loginUrl);
   }
 
-  // Authorization: Role base access control
+  // Authorization : Role based access control
   if (pathname.startsWith("/dashboard") && userRole !== "USER") {
     return NextResponse.redirect(new URL("/not-found", request.url));
   } else if (pathname.startsWith("/admin-dashboard") && userRole !== "ADMIN") {
@@ -105,7 +108,7 @@ export async function proxy(request: NextRequest) {
   // const subscriptionStatus = await getSubscriptionStatus();
 
   // const isActive = Boolean(
-  //   subscriptionStatus?.success && subscriptionStatus.data?.isSubscribed,
+  //     subscriptionStatus?.success && subscriptionStatus.data?.isSubscribed,
   // );
 
   if (pathname === "/premium") {
@@ -120,26 +123,26 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // if (pathname === "/payment") {
-  //   // const subscriptionStatus = await getSubscriptionStatus();
+  // if(pathname === "/payment"){
+  //     // const subscriptionStatus = await getSubscriptionStatus();
 
-  //   // const isActive = Boolean(
-  //   //   subscriptionStatus?.success && subscriptionStatus.data?.isSubscribed,
-  //   // );
+  //     // const isActive = Boolean(
+  //     //     subscriptionStatus?.success && subscriptionStatus.data?.isSubscribed,
+  //     // );
 
-  //   if (isActive) {
-  //     return NextResponse.redirect(new URL("/premium", request.url));
-  //   }
+  //     if (isActive) {
+  //         return NextResponse.redirect(new URL("/premium", request.url))
+  //     }
   // }
 
-  // return NextResponse.redirect(new URL("/home", request.url));
+  // return NextResponse.redirect(new URL('/', request.url))
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    // "/dashboard/:path*",
-    // "/admin-dashboard/:path*",
+    // '/dashboard/:path*',
+    // '/admin-dashboard/:path*',
     "/((?!api|_next/static|favicon.ico|_next/image|.*\\.png$).*)",
   ],
 };

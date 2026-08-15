@@ -1,0 +1,29 @@
+"use client";
+
+import * as React from "react";
+
+const MOBILE_BREAKPOINT = 768;
+
+const getMediaQuery = () => `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
+
+export function useIsMobile() {
+  const subscribe = React.useCallback((callback: () => void) => {
+    const mediaQuery = window.matchMedia(getMediaQuery());
+
+    mediaQuery.addEventListener("change", callback);
+
+    return () => {
+      mediaQuery.removeEventListener("change", callback);
+    };
+  }, []);
+
+  const getSnapshot = React.useCallback(() => {
+    return window.matchMedia(getMediaQuery()).matches;
+  }, []);
+
+  const getServerSnapshot = React.useCallback(() => {
+    return false;
+  }, []);
+
+  return React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
